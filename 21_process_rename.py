@@ -18,11 +18,11 @@ print("============================================")
 # cluster_col = sys.argv[4]
 # condition_col = sys.argv[5]
 
-dataset_path = "Visium_MTG_10samples"
-kept_features =["nCount_Spatial","nFeature_Spatial","sample_name","sex","diagnosis","last_mmse_test_score","motor_updrs_score","smoothed_label_s5"]
-sample_col = "sample_name"
-cluster_col = "smoothed_label_s5"
-condition_col = "diagnosis"
+dataset_path = "datasets/MERFISH_Demo"
+kept_features =["n_genes_by_counts","total_counts","sample","celltype","leiden_res_2.00","tissue_type","cluster","n_transcripts"]
+sample_col = "sample"
+cluster_col = "celltype"
+condition_col = None  # No condition column in this dataset
 
 print("============================================")
 print("Dataset path: ", dataset_path)
@@ -36,18 +36,20 @@ if sample_col not in kept_features:
     kept_features.append(sample_col)
 if cluster_col not in kept_features:
     kept_features.append(cluster_col)
-if condition_col not in kept_features:
+if (condition_col is not None) and (condition_col not in kept_features):
     kept_features.append(condition_col)
 
 
 print("Loading metadata...")
-metadata = pd.read_csv(dataset_path + "/raw_metadata.csv", index_col=0, header=0)
+metadata = pd.read_csv(dataset_path + "/raw_cell_metadata.csv", index_col=0, header=0)
 metadata = metadata.loc[:, kept_features]
 
 
-metadata = metadata.rename(columns={condition_col: "Condition"})
-kept_features.remove(condition_col)
-kept_features.append("Condition")
+if condition_col is not None:
+    print("Renaming condition...")
+    metadata = metadata.rename(columns={condition_col: "Condition"})
+    kept_features.remove(condition_col)
+    kept_features.append("Condition")
 
 ## if the column data is float, keep 2 digits after the decimal point
 # Round only float columns to 2 decimal places
@@ -62,7 +64,7 @@ if "sample_id" != sample_col:
     kept_features.append("sample_id")
 
 ## Rename the spot id as: SampleID_spotSerialNumber
-print("Renaming spot id...")
+print("Renaming cell id...")
 new_ids = []
 sample_cellspot_n = {}
 for index, row in metadata.iterrows():
@@ -70,7 +72,7 @@ for index, row in metadata.iterrows():
     if sample_id not in sample_cellspot_n:
         sample_cellspot_n[sample_id] = 0
     sample_cellspot_n[sample_id] += 1
-    c_id = sample_id + "_s" + str(sample_cellspot_n[sample_id])
+    c_id = sample_id + "_cs" + str(sample_cellspot_n[sample_id])
     new_ids.append(c_id)
 metadata["cs_id"] = new_ids
 
@@ -171,22 +173,37 @@ embeddings_data_nk.to_csv(dataset_path + "/umap_embeddings_50k.csv", index_label
 
 # %% ============================================================================
 print("Processing coordinates...[renaming barcode to cs_id]")
-files = os.listdir(dataset_path + "/coordinates")
-for file in files:
-    if file.endswith(".csv"):
-        df = pd.read_csv(dataset_path + "/coordinates/" + file, index_col=0, header=0)
-        df.rename(index=barcode_to_csid, inplace=True)
-        df.to_csv(dataset_path + "/coordinates/" + file, index_label="cs_id")
+## split coordinate file by sample and rename barcodes to cs_id
+coord_df = pd.read_csv(dataset_path + "/raw_cell_coordinates.csv", index_col=0, header=0)
+# rename columns to x and y, round to 2 decimal places
+coord_df.columns = ["x", "y"]
+coord_df = coord_df.round(2)
 
+all_samples = metadata.sample_id.unique().tolist()
+os.makedirs(dataset_path + "/coordinates", exist_ok=True)
+files = os.listdir(dataset_path + "/coordinates")
+
+for sample_i in all_samples:
+    print(f"Processing sample: {sample_i} ...")
+    ## get barcodes for this sample
+    sample_barcodes = metadata[metadata["sample_id"] == sample_i].barcode.tolist()
+    coord_sub_df = coord_df.loc[sample_barcodes, :]
+    ## rename barcodes to cs_id
+    coord_sub_df = coord_sub_df.reset_index()
+    coord_sub_df["index"] = coord_sub_df["index"].map(barcode_to_csid)
+    coord_sub_df = coord_sub_df.set_index("index")
+    coord_sub_df.to_csv(f"{dataset_path}/coordinates/{sample_i}_cell_coordinates.csv", index_label="cs_id")
+
+    
 # %% ============================================================================
 ## Process expression data
 print("Loading expression data...(Takes a while...be patient...)")
 ## rename_expression_data
-expression_data = pd.read_csv(dataset_path + "/raw_normalized_counts.csv", index_col=0, header=0)
+expression_data = pd.read_csv(dataset_path + "/raw_expr_matrix.csv", index_col=None, header=0)
 ## rename "Spot" column use barcode_cid map
 print("Renaming expression....")
-expression_data["cs_id"] = expression_data["Spot"].map(barcode_to_csid)
-expression_data.drop("Spot", axis=1, inplace=True)
+expression_data["cs_id"] = expression_data["CellSpot"].map(barcode_to_csid)
+expression_data.drop("CellSpot", axis=1, inplace=True)
 
 ## "Expression" column keep 4 digits after the decimal point
 expression_data["Expression"] = expression_data["Expression"].round(2)
@@ -257,3 +274,5 @@ for gene, df_gene in pseudo_bulk.groupby("Gene"):
 
 print("Done! Feature/Gene data processed and saved.")
 
+
+# %%

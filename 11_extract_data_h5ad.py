@@ -24,7 +24,7 @@ expr_matrix = adata.X
 expr_df = pd.DataFrame.sparse.from_spmatrix(expr_matrix, index=adata.obs_names, columns=adata.var_names)
 print(f"Expression check: {expr_df.loc[["s80n_2.0"], ["ACKR2","AQP4","CCN1","COL5A1", "CXCL12"]]}")
 expr_df = expr_df.stack().reset_index()
-expr_df.columns = ['cs_id', 'Gene', 'Expression']
+expr_df.columns = ['CellSpot', 'Gene', 'Expression']
 
 ##  remove zero expression rows
 expr_df = expr_df[expr_df['Expression'] > 0]
