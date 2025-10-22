@@ -1,0 +1,62 @@
+AnnData object summary
+------------------------------------------------------------
+Cells (obs): 70229
+Genes (var): 1246
+Main matrix (X): csr_matrix with shape (70229, 1246)
+
+Layers (1): counts
+
+obs: 28 columns
+  • Name (object)
+  • sample (category)
+  • n_genes_by_counts (int32)
+  • log1p_n_genes_by_counts (float64)
+  • total_counts (float64)
+  • log1p_total_counts (float64)
+  • pct_counts_in_top_50_genes (float64)
+  • pct_counts_in_top_100_genes (float64)
+  • pct_counts_in_top_200_genes (float64)
+  • pct_counts_in_top_500_genes (float64)
+  • n_counts (float64)
+  • leiden_res_1.00 (category)
+  • celltype (category)
+  • leiden_res_2.00 (category)
+  • celltype_abundant (category)
+  • tissue_type (category)
+  • x (float64)
+  • y (float64)
+  • z (float64)
+  • cluster (int64)
+  • n_transcripts (int64)
+  • density (float64)
+  • elongation (float64)
+  • area (float64)
+  • avg_confidence (float64)
+  • avg_assignment_confidence (float64)
+  • max_cluster_frac (float64)
+  • lifespan (int64)
+
+var: 11 columns
+  • n_cells_by_counts (int64)
+  • mean_counts (float64)
+  • log1p_mean_counts (float64)
+  • pct_dropout_by_counts (float64)
+  • total_counts (float64)
+  • log1p_total_counts (float64)
+  • n_cells (int32)
+  • highly_variable (bool)
+  • means (float64)
+  • dispersions (float64)
+  • dispersions_norm (float32)
+
+obsm:
+  • X_pca: shape (70229, 50)
+  • X_pca_harmony: shape (70229, 50)
+  • X_umap: shape (70229, 2)
+
+obsp:
+  • connectivities: shape (70229, 70229)
+  • distances: shape (70229, 70229)
+
+uns keys (11): ['celltype_colors', 'hvg', 'leiden_res_1.00', 'leiden_res_1.00_colors', 'leiden_res_2.00', 'leiden_res_2.00_colors', 'log1p', 'neighbors', 'pca', 'sample_colors', 'umap']
+------------------------------------------------------------
