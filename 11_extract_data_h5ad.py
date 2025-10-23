@@ -6,7 +6,7 @@ import os
 import pandas as pd
 
 # Function to read and extract data from h5ad file
-data_file = "data/20251020_s80n_s80p_demo.h5ad"  # Replace with your .h5ad file path
+data_file = "data/20251020_s80n_s80p_modified.h5ad"  # Replace with your .h5ad file path
 dataset_name = "MERFISH_Demo"  # Replace with your dataset name
 
 

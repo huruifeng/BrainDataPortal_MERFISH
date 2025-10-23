@@ -19,10 +19,10 @@ print("============================================")
 # condition_col = sys.argv[5]
 
 dataset_path = "datasets/MERFISH_Demo"
-kept_features =["n_genes_by_counts","total_counts","sample","celltype","leiden_res_2.00","tissue_type","cluster","n_transcripts"]
-sample_col = "sample"
+kept_features =["n_genes_by_counts","total_counts","celltype","leiden_res_2.00","tissue_type","cluster","n_transcripts"]
+sample_col = "sample_new_id"
 cluster_col = "celltype"
-condition_col = None  # No condition column in this dataset
+condition_col = "condition"  # No condition column in this dataset
 
 print("============================================")
 print("Dataset path: ", dataset_path)
