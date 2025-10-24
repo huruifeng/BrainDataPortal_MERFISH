@@ -84,17 +84,9 @@ pb_adata = create_pseudobulk(adata, cluster_col=cluster_col, sample_col=sample_c
 pb_expr_file = os.path.join(output_dir, "pb_expr_matrix.csv")
 pb_expr_df = pd.DataFrame(pb_adata.X, index=pb_adata.obs_names, columns=pb_adata.var_names)
 ## round to 2 decimal places
-pb_expr_df = pb_expr_df.round(2)
+pb_expr_df = pb_expr_df.T.round(2)
 pb_expr_df.to_csv(pb_expr_file)
 print(f"✅ Pseudo-bulk expression matrix saved to {pb_expr_file}")
-
-# # %%
-# ## validate pseudo-bulk values by comparing with manual aggregation, use gene 'ACADL' as example
-# print("Validating pseudo-bulk values by manual aggregation...")
-# gene_of_interest = "ACADL"
-# gene_df = pb_expr_df[pb_expr_df.index.str.startswith("s80n_5")][gene_of_interest]
-# gene_sum = gene_df.sum()
-# print(f"Sum of pseudo-bulk expression for gene {gene_of_interest} in sample s80n_5: {gene_sum}")
 
 # %%
 ## ========== pseudo-bulk DE analysis in each cell type/cluster ==========
@@ -140,6 +132,16 @@ topN_pb_deg_df = pd.concat(topN_pb_deg_dfs, ignore_index=True)
 all_pb_deg_df.to_csv(os.path.join(output_dir, "cluster_pb_DEGs.csv"), index=False)
 topN_pb_deg_df.to_csv(os.path.join(output_dir, "cluster_pb_DEGs_topN.csv"), index=False)
 print(f"✅ Cluster pseudo-bulk DEGs saved to {output_dir}")
+
+# %%
+## ========== Identify top marker genes per cluster ==========
+print("============================================")
+pooled_topN_DEGs = topN_pb_deg_df['gene'].unique().tolist()
+print(f"Number of unique top N DEGs across all clusters: {len(pooled_topN_DEGs)}")
+expr_matrix_pooled_topN_DGEs = pb_expr_df.loc[pooled_topN_DEGs,: ]
+
+expr_matrix_pooled_topN_DGEs.to_csv(output_dir + "/pb_expr_matrix_DEGs_topN.csv", index=False)
+
 
 
 print("All done!")
