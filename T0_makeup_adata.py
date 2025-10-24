@@ -10,19 +10,18 @@ import numpy as np
 ## The new h5ad file will be saved to: data/20251020_s80n_s80p_modified.h5ad
 ## The modifications include:
 ## 1. Add a new column 'condition' to adata.obs, with values 'normal' for sample 's80n' and 'pathology' for sample 's80p
-## 2. split s80n into 5 samples: s80n_1, s80n_2, ..., s80n_5 randomlyly, and add a new column 'sample_new_id' to adata.obs
-## 3. split s80p into 5 samples: s80p_1, s80p_2, ..., s80p_5 randomlyly, and add a new column 'sample_new_id' to adata.obs
-## 4. save the new h5ad file to data/20251020_s80n_s80p_modified.h5ad
+## 2. split s80n into 5 samples: s80n_1, s80n_2, ..., s80n_5 randomly, and add a new column 'sample_new_id' to adata.obs
+## 3. split s80p into 5 samples: s80p_1, s80p_2, ..., s80p_5 randomly, and add a new column 'sample_new_id' to adata.obs
+## 4. split s74 into 5 samples: s74_1, s74_2, ..., s74_5 randomly, and add a new column 'sample_new_id' to adata.obs
+## 5. save the new h5ad file to data/20251020_s80n_s80p_modified.h5ad
 
-def make_modified_adata(input_file, output_file):
-    print(f"Reading h5ad file from {input_file}...")
-    adata = ad.read_h5ad(input_file, backed=None)
+def make_modified_adata(adata, output_file):
     
     print("Modifying adata.obs...")
     np.random.seed(42)  # for reproducibility
     
     # Add 'condition' column
-    adata.obs['condition'] = adata.obs['sample'].map({'s80n': 'normal', 's80p': 'pathology'})
+    adata.obs['condition'] = adata.obs['sample'].map({'s80n': 'normal', 's80p': 'pathology', 's74': 'tumor'})
     
     # Create new sample IDs
     def assign_new_sample_ids(original_sample, n_splits=5):
@@ -38,7 +37,7 @@ def make_modified_adata(input_file, output_file):
         return new_ids
     
     new_sample_ids = []
-    for sample in ['s80n', 's80p']:
+    for sample in ['s80n', 's80p', 's74']:
         new_sample_ids.extend(assign_new_sample_ids(sample))
     
     adata.obs['sample_new_id'] = new_sample_ids
@@ -48,10 +47,19 @@ def make_modified_adata(input_file, output_file):
     print("Done.")
 
     return adata
-# Specify input and output files
-input_h5ad_file = "data/20251020_s80n_s80p_demo.h5ad"
+
+
+s74_adata = ad.read_h5ad("data/20251015_s74_demo.h5ad", backed=None)
+s74_adata.obs["celltype"] = s74_adata.obs["celltype_abundant"]
+
+adata = ad.read_h5ad("data/20251020_s80n_s80p_demo.h5ad", backed=None)
+print(f"Original adata shape: {adata.shape}, s74 adata shape: {s74_adata.shape}")
+
+new_adata = ad.concat([adata, s74_adata], join="inner", axis=0)
+print(f"Concatenated adata shape: {new_adata.shape}")
+
 output_h5ad_file = "data/20251020_s80n_s80p_modified.h5ad"
-
 # Call the function
-make_modified_adata(input_h5ad_file, output_h5ad_file)
-
+adata = make_modified_adata(new_adata, output_h5ad_file)
+print("Modified adata.obs columns:")
+print(adata.shape)
