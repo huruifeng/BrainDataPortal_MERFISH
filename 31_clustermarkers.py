@@ -88,12 +88,18 @@ pb_expr_df = pb_expr_df.T.round(2)
 pb_expr_df.to_csv(pb_expr_file)
 print(f"✅ Pseudo-bulk expression matrix saved to {pb_expr_file}")
 
+pb_metadata_file = os.path.join(output_dir, "metadata_sample_cluster_condition.csv")
+pb_metadata_df = pb_adata.obs.copy()
+pb_metadata_df.rename(columns={"sample": "sampleId", "cluster": cluster_col, "condition": "condition"}, inplace=True)
+pb_metadata_df.to_csv(pb_metadata_file)
+print(f"✅ Pseudo-bulk metadata saved to {pb_metadata_file}")
+
 # %%
 ## ========== pseudo-bulk DE analysis in each cell type/cluster ==========
 print("============================================")
 # pseudo-bulk DE analysis in each cell type/cluster
 print("Calculating pseudo-bulk differential expression within each cell type...")
-pb_deg_results = deg_within_clusters(pb_adata, cluster_col="cluster", group_col=condition_col)
+pb_deg_results = deg_within_clusters(pb_adata, cluster_col="cluster", group_col="condition")
 
 ## merge and save results
 print("Merging DEGs from all clusters...")
@@ -140,7 +146,7 @@ pooled_topN_DEGs = topN_pb_deg_df['gene'].unique().tolist()
 print(f"Number of unique top N DEGs across all clusters: {len(pooled_topN_DEGs)}")
 expr_matrix_pooled_topN_DGEs = pb_expr_df.loc[pooled_topN_DEGs,: ]
 
-expr_matrix_pooled_topN_DGEs.to_csv(output_dir + "/pb_expr_matrix_DEGs_topN.csv", index=False)
+expr_matrix_pooled_topN_DGEs.to_csv(output_dir + "/pb_expr_matrix_DEGs_topN.csv", index=True)
 
 
 
