@@ -192,7 +192,7 @@ for sample_i in all_samples:
     coord_sub_df = coord_sub_df.reset_index()
     coord_sub_df["index"] = coord_sub_df["index"].map(barcode_to_csid)
     coord_sub_df = coord_sub_df.set_index("index")
-    coord_sub_df.to_csv(f"{dataset_path}/coordinates/{sample_i}_cell_coordinates.csv", index_label="cs_id")
+    coord_sub_df.to_csv(f"{dataset_path}/coordinates/cell_coordinates_{sample_i}.csv", index_label="cs_id")
 
     
 # %% ============================================================================
